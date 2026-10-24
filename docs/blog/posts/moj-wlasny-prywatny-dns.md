@@ -46,9 +46,10 @@ Pipeline jest na tyle elastyczny, że potrafi przeczytać najpopularniejsze form
 | Format | Przykład zapisu | Status |
 | :--- | :--- | :--- |
 | **`domains`** | `domena.com` | Preferowany (najlżejszy) |
-| **`dnsmasq`** | `address=/domena.com/` | Preferowany |
-| **`hosts`** | `0.0.0.0 domena.com` | Wspierany |
-| **`adblock`** | `\|\|domena.com^` | Wspierany (awaryjnie) |
+| **`domainswild`** | `*.domena.com` | Wspierany |
+| **`hosts`** | `0.0.0.0 domena.com`<br>`127.0.0.1 domena.com`<br>`::1 domena.com` | Wspierany |
+| **`dnsmasq`** | `address=/domena.com/`<br>`server=/domena.com/` | Preferowany |
+| **`adblock`** | `\|\|domena.com^` (ignoruje `$`) | Wspierany (awaryjnie) |
 
 Problem z wieloma źródłami jest taki, że często się nakładają. Ta sama domena może pojawić się w trzech, czterech, pięciu listach jednocześnie. Gdybym wrzucił wszystko do jednego worka bez czyszczenia, miałbym listę pełną powtórzeń, większą niż potrzeba i wolniejszą w działaniu.
 
