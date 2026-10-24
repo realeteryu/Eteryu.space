@@ -27,6 +27,7 @@ To mnie uwierało. Nie z powodu paranoi, ale z poczucia, że oddaję kontrolę n
 Zbudowałem swój własny serwer DNS. Stoi w chmurze (konkretnie na Cloudflare Workers), więc mam do niego dostęp z każdego miejsca na świecie. Nie potrzebuję do tego żadnego sprzętu, żadnego Raspberry Pi, żadnego VPN-a. Filtruje ruch według list, które sam wybieram i sam układam.
 
 Cały proces wygląda bardzo prosto:
+
 1. Moje urządzenie pyta mój serwer o adres jakiejś strony.
 2. Serwer sprawdza, czy ta domena znajduje się na przygotowanej przeze mnie liście.
 3. Jeśli jest – serwer natychmiast odpowiada „nie znam takiej strony".
@@ -54,6 +55,7 @@ Pipeline jest na tyle elastyczny, że potrafi przeczytać najpopularniejsze form
 Problem z wieloma źródłami jest taki, że często się nakładają. Ta sama domena może pojawić się w trzech, czterech, pięciu listach jednocześnie. Gdybym wrzucił wszystko do jednego worka bez czyszczenia, miałbym listę pełną powtórzeń, większą niż potrzeba i wolniejszą w działaniu.
 
 Zamiast tego mój pipeline robi dwie rzeczy:
+
 * **Deduplikacja:** Zbiera wszystkie domeny do jednego zbioru, który z definicji nie może zawierać duplikatów.
 * **Aglomeracja:** Usuwa redundantne subdomeny. Jeśli na liście jest `example.com`, nie ma sensu trzymać `ads.example.com` i `track.example.com`. Każda z tych subdomen zostanie zablokowana przez domenę nadrzędną.
 
