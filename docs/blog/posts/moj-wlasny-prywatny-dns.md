@@ -24,25 +24,46 @@ To mnie uwierało. Nie z powodu paranoi, ale z poczucia, że oddaję kontrolę n
 
 ## Co to właściwie jest?
 
-Zbudowałem swój własny serwer DNS. Stoi w chmurze, więc mam do niego dostęp z każdego miejsca na świecie. Nie potrzebuję do tego żadnego sprzętu, żadnego Raspberry Pi, żadnego VPN-a. Filtruje ruch według list, które sam wybieram i sam układam.
+Zbudowałem swój własny serwer DNS. Stoi w chmurze (konkretnie na Cloudflare Workers), więc mam do niego dostęp z każdego miejsca na świecie. Nie potrzebuję do tego żadnego sprzętu, żadnego Raspberry Pi, żadnego VPN-a. Filtruje ruch według list, które sam wybieram i sam układam.
 
-Działa to tak. Moje urządzenia pytają mój serwer o adres jakiejś strony. Serwer sprawdza, czy ta domena jest na liście, którą przygotowałem. Jeśli jest, odpowiada „nie znam takiej strony". Jeśli nie ma jej na liście, przekazuje zapytanie dalej.
+Cały proces wygląda bardzo prosto:
+1. Moje urządzenie pyta mój serwer o adres jakiejś strony.
+2. Serwer sprawdza, czy ta domena znajduje się na przygotowanej przeze mnie liście.
+3. Jeśli jest – serwer natychmiast odpowiada „nie znam takiej strony".
+4. Jeśli nie ma jej na liście – przekazuje zapytanie dalej, do zaufanego upstreamu.
 
-Blokuję reklamy, trackery, telemetrię, domeny malware i phishing. Korzystam z ośmiu źródeł, które sam wybrałem. Jedne skupiają się na reklamach, inne na trackerach, jeszcze inne na zagrożeniach. Każde z nich wnosi coś innego.
+Blokuję reklamy, trackery, telemetrię, domeny malware i phishing. Korzystam z kilkunastu starannie wybranych źródeł. Część z nich skupia się na reklamach (OISD, HaGeZi), część na globalnych zagrożeniach phishingowych (Phishing Army), a inne dostarczają unikalnej wiedzy o polskim internecie (Cert Polska, MajkiIT, KADhosts).
 
-Warto dodać, że to działa na poziomie DNS. Nie blokuje reklam w YouTube ani elementów wewnątrz strony. Do tego potrzebny jest osobny content blocker w przeglądarce. Mój resolver jest pierwszą warstwą.
+!!! warning "Pierwsza warstwa"
+    Warto pamiętać, że to działa na poziomie DNS. Nie blokuje reklam w YouTube ani elementów wewnątrz strony. Do tego potrzebny jest osobny content blocker w przeglądarce. Mój resolver jest tylko (i aż) pierwszą warstwą ochrony.
 
 ## Jak łączę listy i usuwam duplikaty
 
 To, co opisałem wyżej, to sam resolver. Ale on nie działa w próżni. Potrzebuje listy, na której może pracować. Przygotowanie tej listy to druga, osobna część całego rozwiązania.
 
+Pipeline jest na tyle elastyczny, że potrafi przeczytać najpopularniejsze formaty. Świadomie wybieram jednak te najlżejsze, aby maksymalnie odciążyć procesor.
+
+| Format | Przykład zapisu | Status |
+| :--- | :--- | :--- |
+| **`domains`** | `domena.com` | Preferowany (najlżejszy) |
+| **`dnsmasq`** | `address=/domena.com/` | Preferowany |
+| **`hosts`** | `0.0.0.0 domena.com` | Wspierany |
+| **`adblock`** | `\|\|domena.com^` | Wspierany (awaryjnie) |
+
 Problem z wieloma źródłami jest taki, że często się nakładają. Ta sama domena może pojawić się w trzech, czterech, pięciu listach jednocześnie. Gdybym wrzucił wszystko do jednego worka bez czyszczenia, miałbym listę pełną powtórzeń, większą niż potrzeba i wolniejszą w działaniu.
 
-Zamiast tego mój pipeline robi coś prostego. Zbiera wszystkie domeny ze wszystkich źródeł do jednego zbioru, który z definicji nie może zawierać duplikatów. Jeśli ta sama domena pojawi się pięć razy, będzie tylko raz.
+Zamiast tego mój pipeline robi dwie rzeczy:
+* **Deduplikacja:** Zbiera wszystkie domeny do jednego zbioru, który z definicji nie może zawierać duplikatów.
+* **Aglomeracja:** Usuwa redundantne subdomeny. Jeśli na liście jest `example.com`, nie ma sensu trzymać `ads.example.com` i `track.example.com`. Każda z tych subdomen zostanie zablokowana przez domenę nadrzędną.
 
-Po zebraniu wszystkich domen usuwam redundantne subdomeny. Jeśli na liście jest `example.com`, nie ma sensu trzymać na niej także `ads.example.com` i `track.example.com`. Każda z tych subdomen zostanie zablokowana, jeśli zablokowana jest domena nadrzędna. Usuwam je. Lista staje się mniejsza, a blokada działa tak samo.
+Efekt tych operacji z ostatniego przebiegu wygląda następująco:
 
-Efekt jest taki, że z kilkudziesięciu tysięcy wpisów ze wszystkich źródeł zostaje jedna, czysta lista. Bez duplikatów. Bez zbędnych subdomen. Tylko to, co faktycznie blokuje coś, czego nie chcę widzieć.
+| Etap | Liczba wpisów |
+| :--- | :--- |
+| Surowych linii z wszystkich źródeł | 1 160 757 |
+| Po deduplikacji (usunięcie powtórek) | 543 624 |
+| **Po aglomeracji (gotowa lista)** | **393 316** |
+| *Usunięto redundantnych subdomen* | *150 308* |
 
 !!! note "Automatyzacja"
     Ten proces dzieje się raz dziennie. Ja nie muszę nic robić. Lista sama się aktualizuje, sama się czyści i sama trafia do mojego resolvera.
@@ -53,7 +74,8 @@ Mój resolver nie ma panelu administracyjnego. Nie ma wykresów, nie ma listy os
 
 To celowa decyzja. Panel ze statystykami oznacza, że ktoś, nawet jeśli tylko ja, gdzieś te dane przechowuje. Lista ostatnich zapytań to nic innego jak historia tego, co robię w internecie. A ja nie chcę, żeby taka historia istniała w jakiejkolwiek formie.
 
-Mój resolver przetwarza zapytanie, zwraca odpowiedź i zapomina. Nie zapisuje niczego i nie analizuje. Nie ma czego nie logować, bo nie ma gdzie logować.
+!!! success "Filozofia Zero-Logs"
+    Mój resolver przetwarza zapytanie, zwraca odpowiedź i zapomina. Nie zapisuje niczego i nie analizuje. Nie ma czego nie logować, bo nie ma gdzie logować.
 
 ## Dla kogo to jest
 
