@@ -7,10 +7,16 @@ site_url = "https://eteryu.space"
 copyright = "Copyright &copy; 2026 Eteryu"
 
 # custom styles
-extra_css = ["assets/css/extra.css"]
+extra_css = [
+    "assets/css/extra.css",
+    "assets/css/walidator.css"
+]
 
 # custom scripts
-extra_javascript = ["assets/js/analytics.js"]
+extra_javascript = [
+    "assets/js/analytics.js",
+    "assets/js/walidator.js"
+]
 
 # manual navigation menu
 nav = [
@@ -27,6 +33,7 @@ nav = [
             "prywatnosc/aliasy.md"
         ]}
     ]},
+    { "Walidator Modelu Zagrożeń" = "walidator.md" },
     { "Poradniki" = [
         { "Zabezpiecz Telefon W 15 Minut" = "poradniki/jak-zabezpieczyc-telefon-w-15-minut.md" },
         { "Prywatny DNS W 5 Minut" = "poradniki/prywatny-dns-w-5-minut.md" },
