@@ -36,19 +36,25 @@ document.addEventListener('DOMContentLoaded', () => {
             friction: getLabel('q5')
         };
 
-        // --- 1. OBLICZANIE RYZYKA (OWASP) ---
+        // --- OBLICZANIE RYZYKA (OWASP) ---
         const likelihood = (adversary + prob) / 2;
         const riskScore = likelihood * impact; // Skala 1.0 - 16.0
 
-        // --- 2. USTALANIE WYMAGANEGO TARCIA ---
-        let requiredFriction = 1;
-        if (riskScore > 12 || asset >= 4) {
-            requiredFriction = 4; // Klucz sprzętowy / Cold storage
-        } else if (riskScore > 8 || asset >= 3) {
-            requiredFriction = 3; // Aplikacja 2FA / Dodatkowe hasło
-        } else if (riskScore > 4) {
-            requiredFriction = 2; // Silne hasło / PIN
+        // --- WYZNACZANIE DOCELOWEGO TARCIA (Target Friction) ---
+        // Wysokie aktywa wymuszają wyższe tarcie, nawet przy średnim ryzyku.
+        let targetFriction = 1; 
+        if (asset >= 4 || riskScore >= 12) {
+            targetFriction = 4; // Wymagane maksymalne zabezpieczenia
+        } else if (asset >= 3 || riskScore >= 8) {
+            targetFriction = 3; // Wymagane silne zabezpieczenia (np. 2FA)
+        } else if (asset === 2 || riskScore >= 4) {
+            targetFriction = 2; // Wymagane podstawowe zabezpieczenia
         }
+
+        // Tolerancja: dopuszczamy odchylenie o 1 stopień od celu
+        const tolerance = 1; 
+        const minAcceptableFriction = Math.max(1, targetFriction - tolerance);
+        const maxAcceptableFriction = Math.min(4, targetFriction + tolerance);
 
         let hasCriticalError = false;
         let hasWarning = false;
@@ -61,32 +67,31 @@ document.addEventListener('DOMContentLoaded', () => {
         reportMd += `- **Ryzyko:** ${labels.prob}\n`;
         reportMd += `- **Skutki:** ${labels.impact}\n`;
         reportMd += `- **Akceptowane tarcie:** ${labels.friction}\n\n`;
-        reportMd += `**Wskaźnik ryzyka:** ${riskScore.toFixed(1)} / 16.0 | **Wymagane tarcie:** min. ${requiredFriction}\n\n`;
+        reportMd += `**Wskaźnik ryzyka:** ${riskScore.toFixed(1)} / 16.0 | **Docelowe tarcie:** ${targetFriction} (Dopuszczalne: ${minAcceptableFriction}-${maxAcceptableFriction})\n\n`;
         reportMd += `---\n\n### 🔍 Analiza OPSEC:\n\n`;
 
         let analysisHtml = `<h3>🔍 Analiza OPSEC:</h3>`;
 
         // FUNDAMENT 1: Najsłabsze ogniwo (Under-defending)
-        if (friction < requiredFriction) {
-            reportMd += `!!! failure "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Twoje ryzyko wymaga tarcia na poziomie ${requiredFriction}, a wybrałeś ${friction}. Twoje zabezpieczenia są niewystarczające.\n\n`;
-            analysisHtml += `<div class="admonition failure"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Twoje ryzyko wymaga tarcia na poziomie ${requiredFriction}, a wybrałeś ${friction}. Twoje zabezpieczenia są niewystarczające.</p></div>`;
+        if (friction < minAcceptableFriction) {
+            reportMd += `!!! failure "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Twoje ryzyko i wartość aktywów wymagają tarcia na poziomie min. ${minAcceptableFriction}. Wybrałeś ${friction}. Atakujący ma zbyt łatwe zadanie (niskie Attacker ROI).\n\n`;
+            analysisHtml += `<div class="admonition failure"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Twoje ryzyko i wartość aktywów wymagają tarcia na poziomie min. ${minAcceptableFriction}. Wybrałeś ${friction}. Atakujący ma zbyt łatwe zadanie (niskie Attacker ROI).</p></div>`;
             hasCriticalError = true;
-            advice.push(`Zwiększ tarcie do poziomu ${requiredFriction} (np. włącz 2FA).`);
+            advice.push(`Zwiększ tarcie do poziomu ${targetFriction} (np. włącz 2FA lub użyj menedżera haseł).`);
         } else {
             reportMd += `!!! success "1. Zasada najsłabszego ogniwa: ZALICZONA"\n    Poziom zabezpieczeń jest adekwatny do ryzyka.\n\n`;
             analysisHtml += `<div class="admonition success"><p class="admonition-title">1. Zasada najsłabszego ogniwa: ZALICZONA</p><p>Poziom zabezpieczeń jest adekwatny do ryzyka.</p></div>`;
         }
 
         // FUNDAMENT 2: Minimalizm (Over-defending)
-        if (friction > requiredFriction + 1) {
-            reportMd += `!!! failure "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz tarcie na poziomie ${friction} przy ryzyku wymagającym ${requiredFriction}. To niepotrzebna złożoność, która może Cię zniechęcić.\n\n`;
-            analysisHtml += `<div class="admonition failure"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz tarcie na poziomie ${friction} przy ryzyku wymagającym ${requiredFriction}. To niepotrzebna złożoność, która może Cię zniechęcić.</p></div>`;
+        if (friction > maxAcceptableFriction) {
+            reportMd += `!!! failure "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz tarcie na poziomie ${friction} przy celu ${targetFriction}. To niepotrzebna złożoność (Security Theater), która może Cię zniechęcić do codziennego użytku.\n\n`;
+            analysisHtml += `<div class="admonition failure"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz tarcie na poziomie ${friction} przy celu ${targetFriction}. To niepotrzebna złożoność (Security Theater), która może Cię zniechęcić do codziennego użytku.</p></div>`;
             hasCriticalError = true;
-            advice.push("Zmniejsz poziom skomplikowania, nie wdrażaj niepotrzebnych zabezpieczeń.");
+            advice.push("Zmniejsz poziom skomplikowania. Nie wdrażaj zabezpieczeń, których nie potrzebujesz.");
         } else {
-            // Tutaj zmieniono komunikat, aby nie kłócił się z błędem w Fundamencie 1
-            reportMd += `!!! success "2. Minimalizm (KISS): ZALICZONA"\n    Brak zbędnej złożoności. Nie wdrażasz niepotrzebnych, ciężkich zabezpieczeń.\n\n`;
-            analysisHtml += `<div class="admonition success"><p class="admonition-title">2. Minimalizm (KISS): ZALICZONA</p><p>Brak zbędnej złożoności. Nie wdrażasz niepotrzebnych, ciężkich zabezpieczeń.</p></div>`;
+            reportMd += `!!! success "2. Minimalizm (KISS): ZALICZONA"\n    Brak zbędnej złożoności. Poziom tarcia jest optymalny.\n\n`;
+            analysisHtml += `<div class="admonition success"><p class="admonition-title">2. Minimalizm (KISS): ZALICZONA</p><p>Brak zbędnej złożoności. Poziom tarcia jest optymalny.</p></div>`;
         }
 
         // FUNDAMENT 3: Świadome zaufanie
@@ -123,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reportMd += `!!! failure "KRYTYCZNE NIESPÓJNOŚCI"\n    Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją.\n\n`;
             finalHtml += `<div class="admonition failure"><p class="admonition-title">KRYTYCZNE NIESPÓJNOŚCI</p><p>Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją.</p>`;
             
-            // Dodawanie konkretnych porad
             if (advice.length > 0) {
                 reportMd += `**Co powinieneś zrobić:**\n`;
                 finalHtml += `<p><strong>Co powinieneś zrobić:</strong></p><ul>`;
