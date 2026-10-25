@@ -31,12 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let passed = 0;
         let report = `### 🛡️ Twój Model Zagrożeń\n\n`;
         
+        // ZMIANA: Użyto myślników zamiast gwiazdek i usunięto nadmiar spacji
         report += `**Twoje założenia:**\n`;
-        report += `*   **Chronię:** ${labels.asset}\n`;
-        report += `*   **Przed kim:** ${labels.adversary}\n`;
-        report += `*   **Ryzyko:** ${labels.prob}\n`;
-        report += `*   **Skutki:** ${labels.impact}\n`;
-        report += `*   **Akceptowane tarcie:** ${labels.friction}\n\n`;
+        report += `- **Chronię:** ${labels.asset}\n`;
+        report += `- **Przed kim:** ${labels.adversary}\n`;
+        report += `- **Ryzyko:** ${labels.prob}\n`;
+        report += `- **Skutki:** ${labels.impact}\n`;
+        report += `- **Akceptowane tarcie:** ${labels.friction}\n\n`;
+        
         report += `---\n\n### 🔍 Analiza OPSEC:\n\n`;
 
         // 1. Najsłabsze ogniwo
