@@ -36,9 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
             friction: getLabel('q5')
         };
 
-        let errorScore = 0; 
-        let maxRisk = Math.max(asset, adversary, prob, impact);
+        // --- NOWA LOGIKA RYZYKA (OWASP/NIST) ---
+        const likelihood = (adversary + prob) / 2;
+        const riskScore = likelihood * impact; // Skala 1-16
+        
+        let requiredFriction = 1;
+        if (riskScore > 12 || asset >= 4) requiredFriction = 4;
+        else if (riskScore > 8 || asset >= 3) requiredFriction = 3;
+        else if (riskScore > 4) requiredFriction = 2;
 
+        let errorScore = 0;
         let reportMd = `### 🛡️ Twój Model Zagrożeń\n\n`;
         reportMd += `**Twoje założenia:**\n`;
         reportMd += `- **Chronię:** ${labels.asset}\n`;
@@ -46,44 +53,45 @@ document.addEventListener('DOMContentLoaded', () => {
         reportMd += `- **Ryzyko:** ${labels.prob}\n`;
         reportMd += `- **Skutki:** ${labels.impact}\n`;
         reportMd += `- **Akceptowane tarcie:** ${labels.friction}\n\n`;
+        reportMd += `**Wskaźnik ryzyka (Risk Score):** ${riskScore.toFixed(2)} / 16\n\n`;
         reportMd += `---\n\n### 🔍 Analiza OPSEC:\n\n`;
 
         let analysisHtml = `<h3>🔍 Analiza OPSEC:</h3>`;
 
         // 1. Najsłabsze ogniwo (Under-defending)
-        if (maxRisk >= 3 && friction <= 1) {
-            reportMd += `!!! danger "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.\n\n`;
-            analysisHtml += `<div class="admonition danger"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.</p></div>`;
+        if (friction < requiredFriction) {
+            reportMd += `!!! failure "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Twoje ryzyko (${riskScore.toFixed(2)}) wymaga tarcia na poziomie ${requiredFriction}, a wybrałeś ${friction}. Twoje zabezpieczenia są niewystarczające.\n\n`;
+            analysisHtml += `<div class="admonition failure"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Twoje ryzyko (${riskScore.toFixed(2)}) wymaga tarcia na poziomie ${requiredFriction}, a wybrałeś ${friction}. Twoje zabezpieczenia są niewystarczające.</p></div>`;
             errorScore += 2;
         } else {
-            reportMd += `!!! success "1. Zasada najsłabszego ogniwa: ZALICZONA"\n    Poziom zabezpieczeń jest adekwatny do zidentyfikowanego ryzyka.\n\n`;
-            analysisHtml += `<div class="admonition success"><p class="admonition-title">1. Zasada najsłabszego ogniwa: ZALICZONA</p><p>Poziom zabezpieczeń jest adekwatny do zidentyfikowanego ryzyka.</p></div>`;
+            reportMd += `!!! success "1. Zasada najsłabszego ogniwa: ZALICZONA"\n    Poziom zabezpieczeń jest adekwatny do ryzyka.\n\n`;
+            analysisHtml += `<div class="admonition success"><p class="admonition-title">1. Zasada najsłabszego ogniwa: ZALICZONA</p><p>Poziom zabezpieczeń jest adekwatny do ryzyka.</p></div>`;
         }
 
         // 2. Minimalizm (Over-defending)
-        if (maxRisk <= 2 && friction >= 3) {
-            reportMd += `!!! danger "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.\n\n`;
-            analysisHtml += `<div class="admonition danger"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.</p></div>`;
+        if (friction > requiredFriction + 1) {
+            reportMd += `!!! failure "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz tarcie na poziomie ${friction} przy ryzyku wymagającym ${requiredFriction}. To niepotrzebna złożoność, która może Cię zniechęcić.\n\n`;
+            analysisHtml += `<div class="admonition failure"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz tarcie na poziomie ${friction} przy ryzyku wymagającym ${requiredFriction}. To niepotrzebna złożoność, która może Cię zniechęcić.</p></div>`;
             errorScore += 2;
         } else {
-            reportMd += `!!! success "2. Minimalizm (KISS): ZALICZONA"\n    Poziom skomplikowania jest proporcjonalny do chronionych zasobów.\n\n`;
-            analysisHtml += `<div class="admonition success"><p class="admonition-title">2. Minimalizm (KISS): ZALICZONA</p><p>Poziom skomplikowania jest proporcjonalny do chronionych zasobów.</p></div>`;
+            reportMd += `!!! success "2. Minimalizm (KISS): ZALICZONA"\n    Poziom skomplikowania jest proporcjonalny do zasobów.\n\n`;
+            analysisHtml += `<div class="admonition success"><p class="admonition-title">2. Minimalizm (KISS): ZALICZONA</p><p>Poziom skomplikowania jest proporcjonalny do zasobów.</p></div>`;
         }
 
-        // 3. Świadome zaufanie
-        if ((asset >= 3 || adversary >= 3) && friction <= 1) {
-            reportMd += `!!! danger "3. Świadome zaufanie: NARUSZONA"\n    Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.\n\n`;
-            analysisHtml += `<div class="admonition danger"><p class="admonition-title">3. Świadome zaufanie: NARUSZONA</p><p>Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.</p></div>`;
+        // 3. Świadome zaufanie (Blind Trust)
+        if (asset >= 3 && friction === 1) {
+            reportMd += `!!! failure "3. Świadome zaufanie: NARUSZONA"\n    Chronisz krytyczne dane przy zerowym tarciu. Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.\n\n`;
+            analysisHtml += `<div class="admonition failure"><p class="admonition-title">3. Świadome zaufanie: NARUSZONA</p><p>Chronisz krytyczne dane przy zerowym tarciu. Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.</p></div>`;
             errorScore += 2;
         } else {
-            reportMd += `!!! success "3. Świadome zaufanie: ZALICZONA"\n    Twoje decyzje opierają się na świadomym wyborze, a nie ślepym zaufaniu.\n\n`;
-            analysisHtml += `<div class="admonition success"><p class="admonition-title">3. Świadome zaufanie: ZALICZONA</p><p>Twoje decyzje opierają się na świadomym wyborze, a nie ślepym zaufaniu.</p></div>`;
+            reportMd += `!!! success "3. Świadome zaufanie: ZALICZONA"\n    Twoje decyzje opierają się na świadomym wyborze.\n\n`;
+            analysisHtml += `<div class="admonition success"><p class="admonition-title">3. Świadome zaufanie: ZALICZONA</p><p>Twoje decyzje opierają się na świadomym wyborze.</p></div>`;
         }
 
-        // 4. Ewolucja
-        if (adversary >= 3 && friction <= 2) {
-            reportMd += `!!! warning "4. Ewolucja: DO POPRAWY"\n    Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia. Twoje zabezpieczenia są zbyt statyczne.\n\n`;
-            analysisHtml += `<div class="admonition warning"><p class="admonition-title">4. Ewolucja: DO POPRAWY</p><p>Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia. Twoje zabezpieczenia są zbyt statyczne.</p></div>`;
+        // 4. Ewolucja (Static Defense)
+        if (adversary >= 3 && friction < 3) {
+            reportMd += `!!! warning "4. Ewolucja: DO POPRAWY"\n    Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia (wymagane min. 3). Twoje zabezpieczenia są zbyt statyczne.\n\n`;
+            analysisHtml += `<div class="admonition warning"><p class="admonition-title">4. Ewolucja: DO POPRAWY</p><p>Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia (wymagane min. 3). Twoje zabezpieczenia są zbyt statyczne.</p></div>`;
             errorScore += 1;
         } else {
             reportMd += `!!! success "4. Ewolucja: ZALICZONA"\n    Twój model uwzględnia potrzebę adaptacji.\n\n`;
@@ -100,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             reportMd += `!!! warning "WYMAGA POPRAWY"\n    Twój model ma luki. Zwróć uwagę na punkty oznaczone na żółto.`;
             finalHtml += `<div class="admonition warning"><p class="admonition-title">WYMAGA POPRAWY</p><p>Twój model ma luki. Zwróć uwagę na punkty oznaczone na żółto.</p></div>`;
         } else {
-            reportMd += `!!! danger "KRYTYCZNE NIESPÓJNOŚCI"\n    Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.`;
-            finalHtml += `<div class="admonition danger"><p class="admonition-title">KRYTYCZNE NIESPÓJNOŚCI</p><p>Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.</p></div>`;
+            reportMd += `!!! failure "KRYTYCZNE NIESPÓJNOŚCI"\n    Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.`;
+            finalHtml += `<div class="admonition failure"><p class="admonition-title">KRYTYCZNE NIESPÓJNOŚCI</p><p>Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.</p></div>`;
         }
 
         visualResult.innerHTML = analysisHtml + finalHtml;
