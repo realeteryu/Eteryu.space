@@ -15,8 +15,9 @@ To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jes
             <select id="q1">
                 <option value="" disabled selected>-- Wybierz opcję --</option>
                 <option value="1">Poboczne konto (forum, VOD)</option>
-                <option value="2">Główna skrzynka e-mail / tożsamość</option>
-                <option value="3">Komunikacja z aktywistami / dane wrażliwe</option>
+                <option value="2">Konto w mediach społecznościowych</option>
+                <option value="3">Główna skrzynka e-mail / tożsamość</option>
+                <option value="4">Komunikacja z aktywistami / dane wrażliwe</option>
             </select>
         </div>
 
@@ -26,7 +27,8 @@ To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jes
                 <option value="" disabled selected>-- Wybierz opcję --</option>
                 <option value="1">Zautomatyzowane boty / masowe wycieki</option>
                 <option value="2">Korporacyjne profilowanie / złodzieje fizyczni</option>
-                <option value="3">Dedykowany atak APT / służby</option>
+                <option value="3">Dedykowani hakerzy / cyberprzestępcy</option>
+                <option value="4">Atak APT / służby specjalne</option>
             </select>
         </div>
 
@@ -37,6 +39,7 @@ To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jes
                 <option value="1">Niskie prawdopodobieństwo (rzadkie)</option>
                 <option value="2">Umiarkowane (kilka razy w roku)</option>
                 <option value="3">Wysokie (codzienne zagrożenie)</option>
+                <option value="4">Prawie pewne (trwa atak)</option>
             </select>
         </div>
 
@@ -46,7 +49,8 @@ To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jes
                 <option value="" disabled selected>-- Wybierz opcję --</option>
                 <option value="1">Marginalne (utrata dostępu do VOD)</option>
                 <option value="2">Dokuczliwe (spam, utrata reputacji)</option>
-                <option value="3">Katastrofalne (kradzież pieniędzy, deanonimizacja)</option>
+                <option value="3">Poważne (utrata pieniędzy, przejęcie kont)</option>
+                <option value="4">Katastrofalne (deanonimizacja, zagrożenie życia)</option>
             </select>
         </div>
 
@@ -55,16 +59,19 @@ To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jes
             <select id="q5">
                 <option value="" disabled selected>-- Wybierz opcję --</option>
                 <option value="1">Zero (chcę klikać jak najmniej)</option>
-                <option value="2">Umiarkowane (dodatkowe hasło, aplikacja 2FA)</option>
-                <option value="3">Wysokie (klucz sprzętowy, PIN, cold storage)</option>
+                <option value="2">Niskie (silne hasło, prosty PIN)</option>
+                <option value="3">Umiarkowane (dodatkowe hasło, aplikacja 2FA)</option>
+                <option value="4">Wysokie (klucz sprzętowy, cold storage)</option>
             </select>
         </div>
 
         <button id="tm-generate">Wygeneruj model</button>
     </div>
 
+    <div id="tm-visual-result"></div>
+
     <div id="tm-result-container">
-        <label for="tm-result-markdown">Twój raport (Markdown):</label>
+        <label for="tm-result-markdown">Twój raport (Markdown do skopiowania):</label>
         <textarea id="tm-result-markdown" readonly></textarea>
         <button id="tm-copy">Kopiuj do schowka</button>
     </div>
