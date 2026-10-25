@@ -6,7 +6,7 @@ icon: lucide/shield-check
 
 # Walidator Modelu Zagrożeń
 
-To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jest wewnętrznie spójne. Odpowiedz na pięć pytań, a skrypt przeanalizuje Twoje wybory przez pryzmat czterech fundamentów OPSEC z artykułu o [modelowaniu zagrożeń](modelowanie-zagrozen.md).
+To narzędzie pomoże Ci sprawdzić, czy Twoje podejście do bezpieczeństwa jest wewnętrznie spójne. Odpowiedz na pięć pytań, a skrypt przeanalizuje Twoje wybory przez pryzmat czterech fundamentów OPSEC z artykułu o [modelowaniu zagrożeń](fundamenty/modelowanie-zagrozen.md).
 
 <div class="tm-validator">
     <div id="tm-form">
