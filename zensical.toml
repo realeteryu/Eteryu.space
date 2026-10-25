@@ -7,16 +7,10 @@ site_url = "https://eteryu.space"
 copyright = "Copyright &copy; 2026 Eteryu"
 
 # custom styles
-extra_css = [
-    "assets/css/extra.css",
-    "assets/css/walidator.css"
-]
+extra_css = ["assets/css/extra.css"]
 
 # custom scripts
-extra_javascript = [
-    "assets/js/analytics.js",
-    "assets/js/walidator.js"
-]
+extra_javascript = ["assets/js/analytics.js"]
 
 # manual navigation menu
 nav = [
@@ -53,9 +47,6 @@ nav = [
         "narzedzia/konfiguracja-przegladarek.md",
         "narzedzia/wyszukiwarki.md"
     ]},
-    # { "Narzędzia" = [
-    #     { "Walidator Modelu Zagrożeń" = "walidator.md" }
-    # ]},
     { "Blog" = ["blog/index.md"] },
     { "O Projekcie" = [
         "o-projekcie/prywatnosc.md",
