@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
             friction: getLabel('q5')
         };
 
-        let errorScore = 0; // 0 = OK, 1 = Warning, 2+ = Error
-        let maxRisk = Math.max(asset, adversary, prob, impact); // Najwyższy czynnik ryzyka
+        let errorScore = 0; 
+        let maxRisk = Math.max(asset, adversary, prob, impact);
 
         let reportMd = `### 🛡️ Twój Model Zagrożeń\n\n`;
         reportMd += `**Twoje założenia:**\n`;
@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Najsłabsze ogniwo (Under-defending)
         if (maxRisk >= 3 && friction <= 1) {
-            reportMd += `!!! error "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.\n\n`;
-            analysisHtml += `<div class="admonition error"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.</p></div>`;
+            reportMd += `!!! danger "1. Zasada najsłabszego ogniwa: NARUSZONA"\n    Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.\n\n`;
+            analysisHtml += `<div class="admonition danger"><p class="admonition-title">1. Zasada najsłabszego ogniwa: NARUSZONA</p><p>Chronisz ważne aktywo przed poważnym zagrożeniem, ale deklarujesz zerowe tarcie. Twoje zabezpieczenia są iluzją.</p></div>`;
             errorScore += 2;
         } else {
             reportMd += `!!! success "1. Zasada najsłabszego ogniwa: ZALICZONA"\n    Poziom zabezpieczeń jest adekwatny do zidentyfikowanego ryzyka.\n\n`;
@@ -61,10 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 2. Minimalizm (Over-defending)
-        // Jeśli nawet najwyższe ryzyko jest niskie (max 2), a tarcie jest wysokie (3-4)
         if (maxRisk <= 2 && friction >= 3) {
-            reportMd += `!!! error "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.\n\n`;
-            analysisHtml += `<div class="admonition error"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.</p></div>`;
+            reportMd += `!!! danger "2. Minimalizm (KISS): NARUSZONA"\n    Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.\n\n`;
+            analysisHtml += `<div class="admonition danger"><p class="admonition-title">2. Minimalizm (KISS): NARUSZONA</p><p>Wdrażasz skomplikowane zabezpieczenia (wysokie tarcie) dla niskiego ryzyka. To niepotrzebna złożoność, która może Cię zniechęcić.</p></div>`;
             errorScore += 2;
         } else {
             reportMd += `!!! success "2. Minimalizm (KISS): ZALICZONA"\n    Poziom skomplikowania jest proporcjonalny do chronionych zasobów.\n\n`;
@@ -72,10 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. Świadome zaufanie
-        // Wysokie aktywo LUB wysoki adwersarz wymaga co najmniej średniego tarcia (2)
         if ((asset >= 3 || adversary >= 3) && friction <= 1) {
-            reportMd += `!!! error "3. Świadome zaufanie: NARUSZONA"\n    Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.\n\n`;
-            analysisHtml += `<div class="admonition error"><p class="admonition-title">3. Świadome zaufanie: NARUSZONA</p><p>Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.</p></div>`;
+            reportMd += `!!! danger "3. Świadome zaufanie: NARUSZONA"\n    Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.\n\n`;
+            analysisHtml += `<div class="admonition danger"><p class="admonition-title">3. Świadome zaufanie: NARUSZONA</p><p>Chronisz krytyczne dane, ale godzisz się na "zero tarcia". Ślepo ufasz domyślnym ustawieniom, co jest sprzeczne z filozofią Distrust.</p></div>`;
             errorScore += 2;
         } else {
             reportMd += `!!! success "3. Świadome zaufanie: ZALICZONA"\n    Twoje decyzje opierają się na świadomym wyborze, a nie ślepym zaufaniu.\n\n`;
@@ -83,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 4. Ewolucja
-        // Wysoki adwersarz (APT) wymaga gotowości do adaptacji (tarcie min. 3)
         if (adversary >= 3 && friction <= 2) {
             reportMd += `!!! warning "4. Ewolucja: DO POPRAWY"\n    Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia. Twoje zabezpieczenia są zbyt statyczne.\n\n`;
             analysisHtml += `<div class="admonition warning"><p class="admonition-title">4. Ewolucja: DO POPRAWY</p><p>Deklarujesz ochronę przed zaawansowanym adwersarzem, ale nie akceptujesz wystarczającego tarcia. Twoje zabezpieczenia są zbyt statyczne.</p></div>`;
@@ -103,14 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
             reportMd += `!!! warning "WYMAGA POPRAWY"\n    Twój model ma luki. Zwróć uwagę na punkty oznaczone na żółto.`;
             finalHtml += `<div class="admonition warning"><p class="admonition-title">WYMAGA POPRAWY</p><p>Twój model ma luki. Zwróć uwagę na punkty oznaczone na żółto.</p></div>`;
         } else {
-            reportMd += `!!! error "KRYTYCZNE NIESPÓJNOŚCI"\n    Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.`;
-            finalHtml += `<div class="admonition error"><p class="admonition-title">KRYTYCZNE NIESPÓJNOŚCI</p><p>Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.</p></div>`;
+            reportMd += `!!! danger "KRYTYCZNE NIESPÓJNOŚCI"\n    Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.`;
+            finalHtml += `<div class="admonition danger"><p class="admonition-title">KRYTYCZNE NIESPÓJNOŚCI</p><p>Twój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją. Przeczytaj uważnie punkty na czerwono.</p></div>`;
         }
 
-        // Wstrzykiwanie HTML (wizualny wynik)
         visualResult.innerHTML = analysisHtml + finalHtml;
-        
-        // Wstrzykiwanie Markdown (do skopiowania)
         resultMarkdown.value = reportMd;
         resultContainer.style.display = 'block';
     });
