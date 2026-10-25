@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Sprawdzamy, czy jesteśmy na stronie z walidatorem, aby nie wywoływać błędów na innych podstronach
     const form = document.getElementById('tm-form');
     if (!form) return;
 
@@ -9,14 +8,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCopy = document.getElementById('tm-copy');
 
     btnGenerate.addEventListener('click', () => {
-        // Pobieranie wartości (1 = niskie, 2 = średnie, 3 = wysokie)
-        const asset = parseInt(document.getElementById('q1').value);
-        const adversary = parseInt(document.getElementById('q2').value);
-        const prob = parseInt(document.getElementById('q3').value);
-        const impact = parseInt(document.getElementById('q4').value);
-        const friction = parseInt(document.getElementById('q5').value);
+        // --- NOWY KOD: Sprawdzanie, czy wszystkie pytania mają odpowiedzi ---
+        const q1Val = document.getElementById('q1').value;
+        const q2Val = document.getElementById('q2').value;
+        const q3Val = document.getElementById('q3').value;
+        const q4Val = document.getElementById('q4').value;
+        const q5Val = document.getElementById('q5').value;
 
-        // Etykiety dla raportu
+        if (!q1Val || !q2Val || !q3Val || !q4Val || !q5Val) {
+            resultMarkdown.value = "Aby wygenerować raport, musisz odpowiedzieć na wszystkie pięć pytań. Wybierz opcje z list rozwijanych powyżej.";
+            resultContainer.style.display = 'block';
+            return; // Zatrzymujemy działanie skryptu
+        }
+        // -------------------------------------------------------------------
+
+        const asset = parseInt(q1Val);
+        const adversary = parseInt(q2Val);
+        const prob = parseInt(q3Val);
+        const impact = parseInt(q4Val);
+        const friction = parseInt(q5Val);
+
         const getLabel = (id) => document.getElementById(id).options[document.getElementById(id).selectedIndex].text;
         const labels = {
             asset: getLabel('q1'),
@@ -26,12 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
             friction: getLabel('q5')
         };
 
-        // Logika OPSEC
         let riskScore = (asset + adversary + prob + impact) / 4;
         let passed = 0;
         let report = `### 🛡️ Twój Model Zagrożeń\n\n`;
         
-        // ZMIANA: Użyto myślników zamiast gwiazdek i usunięto nadmiar spacji
         report += `**Twoje założenia:**\n`;
         report += `- **Chronię:** ${labels.asset}\n`;
         report += `- **Przed kim:** ${labels.adversary}\n`;
@@ -83,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
             report += `**KRYTYCZNE NIESPÓJNOŚCI**\nTwój model jest wewnętrznie sprzeczny. Twoje bezpieczeństwo może być iluzją.`;
         }
 
-        // Wyświetlanie
         resultMarkdown.value = report;
         resultContainer.style.display = 'block';
     });
