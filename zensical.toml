@@ -33,7 +33,6 @@ nav = [
             "prywatnosc/aliasy.md"
         ]}
     ]},
-    { "Walidator Modelu Zagrożeń" = "walidator.md" },
     { "Poradniki" = [
         { "Zabezpiecz Telefon W 15 Minut" = "poradniki/jak-zabezpieczyc-telefon-w-15-minut.md" },
         { "Prywatny DNS W 5 Minut" = "poradniki/prywatny-dns-w-5-minut.md" },
@@ -54,6 +53,9 @@ nav = [
         "narzedzia/konfiguracja-przegladarek.md",
         "narzedzia/wyszukiwarki.md"
     ]},
+    # { "Narzędzia" = [
+    #     { "Walidator Modelu Zagrożeń" = "walidator.md" }
+    # ]},
     { "Blog" = ["blog/index.md"] },
     { "O Projekcie" = [
         "o-projekcie/prywatnosc.md",
