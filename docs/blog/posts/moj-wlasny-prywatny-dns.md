@@ -33,7 +33,7 @@ Cały proces wygląda bardzo prosto:
 3. Jeśli jest – serwer natychmiast odpowiada „nie znam takiej strony".
 4. Jeśli nie ma jej na liście – przekazuje zapytanie dalej, do zaufanego upstreamu.
 
-Blokuję reklamy, trackery, telemetrię, domeny malware i phishing. Korzystam z kilkunastu starannie wybranych źródeł. Część z nich skupia się na reklamach (OISD, HaGeZi), część na globalnych zagrożeniach phishingowych (Phishing Army), a inne dostarczają unikalnej wiedzy o polskim internecie (Cert Polska, MajkiIT, KADhosts).
+Blokuję reklamy, trackery, telemetrię, domeny malware i phishing. Korzystam z kilku starannie wybranych źródeł. Część z nich skupia się na reklamach i trackerach (OISD, HaGeZi, 1Hosts, Easyprivacy), a inne dostarczają unikalnej wiedzy o zagrożeniach oraz polskim internecie (phishing-filter, Dandelion Sprout, urlhaus, KADhosts, MajkiIT).
 
 !!! warning "Pierwsza warstwa"
     Warto pamiętać, że to działa na poziomie DNS. Nie blokuje reklam w YouTube ani elementów wewnątrz strony. Do tego potrzebny jest osobny content blocker w przeglądarce. Mój resolver jest tylko (i aż) pierwszą warstwą ochrony.
@@ -63,13 +63,13 @@ Efekt tych operacji z ostatniego przebiegu wygląda następująco:
 
 | Etap | Liczba wpisów |
 | :--- | :--- |
-| Surowych linii z wszystkich źródeł | 1 160 757 |
-| Po deduplikacji (usunięcie powtórek) | 543 624 |
-| **Po aglomeracji (gotowa lista)** | **393 316** |
-| *Usunięto redundantnych subdomen* | *150 308* |
+| Surowych linii z wszystkich źródeł | **463 236** |
+| Po deduplikacji (usunięcie powtórek) | **338 545** |
+| **Po aglomeracji (gotowa lista)** | **287 765** |
+| *Usunięto redundantnych subdomen* | *50 780* |
 
-!!! note "Automatyzacja"
-    Ten proces dzieje się raz dziennie. Ja nie muszę nic robić. Lista sama się aktualizuje, sama się czyści i sama trafia do mojego resolvera.
+!!! note "Automatyzacja i wydajność"
+    Ten proces dzieje się raz dziennie. Ja nie muszę nic robić. Lista sama się aktualizuje, sama się czyści i sama trafia do mojego resolvera. Co ważne, sam Worker (napisany w JavaScript) jest maksymalnie odchudzony – nie traci cennych milisekund procesora na ponowne przetwarzanie tekstu, skoro Python zrobił to już za niego w chmurze.
 
 ## Dlaczego to nie ma panelu ani statystyk?
 
